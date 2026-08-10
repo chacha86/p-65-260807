@@ -32,11 +32,11 @@ public class PostController {
     @AllArgsConstructor
     @Getter
     public static class PostWriteForm {
-        @NotBlank(message = "제목을 입력해주세요")
-        @Size(min=2, max=10, message = "제목은 2자 이상 10자 이하로 입력해주세요.")
+        @NotBlank(message = "1-제목을 입력해주세요")
+        @Size(min = 2, max = 10, message = "2-제목은 2자 이상 10자 이하로 입력해주세요.")
         private String title;
-        @NotBlank(message = "내용을 입력해주세요")
-        @Size(min=2, max=10, message = "내용은 2자 이상 10자 이하로 입력해주세요.")
+        @NotBlank(message = "3-내용을 입력해주세요")
+        @Size(min = 2, max = 10, message = "4-내용은 2자 이상 10자 이하로 입력해주세요.")
         private String content;
     }
 
@@ -47,11 +47,12 @@ public class PostController {
             BindingResult bindingResult
     ) {
 
-        if(bindingResult.hasErrors()) {
+        if (bindingResult.hasErrors()) {
 
-          String errorMessages = bindingResult.getFieldErrors()
+            String errorMessages = bindingResult.getFieldErrors()
                     .stream()
                     .map(FieldError::getDefaultMessage)
+                    .sorted()
                     .collect(Collectors.joining("<br>"));
 
             return getWriteFormHtml(errorMessages,
@@ -67,24 +68,24 @@ public class PostController {
 
     private String getWriteFormHtml(String errorMessage, String title, String content, String errorField) {
         return """
-                <div style="color:red">%s</div>
+                        <div style="color:red">%s</div>
                 
-                <form method="POST" action="/posts/doWrite">
-                  <input type="text" name="title" value="%s" autoFocus>
-                  <br>
-                  <textarea name="content">%s</textarea>
-                  <input type="submit" value="작성">
-                </form>
+                        <form method="POST" action="/posts/doWrite">
+                          <input type="text" name="title" value="%s" autoFocus>
+                          <br>
+                          <textarea name="content">%s</textarea>
+                          <input type="submit" value="작성">
+                        </form>
                 
-                <script>
-                    const errorFieldName = "%s";
-
-                    if(errorFieldName.length > 0) {
-                        const form = document.querySelector("form");
-                        form[errorFieldName].focus();
-                    }
-                </script>
-        """.formatted(errorMessage, title, content, errorField);
-}
+                        <script>
+                            const errorFieldName = "%s";
+                
+                            if(errorFieldName.length > 0) {
+                                const form = document.querySelector("form");
+                                form[errorFieldName].focus();
+                            }
+                        </script>
+                """.formatted(errorMessage, title, content, errorField);
+    }
 
 }
