@@ -33,11 +33,25 @@ public class PostController {
     @ResponseBody
     public String doWrite(String title, String content) {
 
-        // 동일한 작업이 들어왔을 때 경고를 하거나 처리를 안해주거나
-        // 멱등이나 비멱등이냐 따져서 비멱등일 때 중복 처리를 서버에서 해줘야 함
+        if(title.isBlank()) return getWriteFormHtml("제목을 입력해주세요.");
+        if(content.isBlank()) return getWriteFormHtml("내용을 입력해주세요.");
 
         Post post = postService.write(title, content);
         return "%d번 글이 작성되었습니다.".formatted(post.getId());
     }
+
+    private String getWriteFormHtml(String errorMessage) {
+        return """
+                <div style="color:red">%s</div>
+                
+                <form method="POST" action="/posts/doWrite">
+                  <input type="text" name="title">
+                  <br>
+                  <textarea name="content"></textarea>
+                  <br>
+                  <input type="submit" value="작성">
+                </form>
+        """.formatted(errorMessage);
+}
 
 }
