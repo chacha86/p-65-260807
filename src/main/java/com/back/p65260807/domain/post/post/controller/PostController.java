@@ -10,7 +10,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,7 +25,7 @@ public class PostController {
     @GetMapping("/posts/write")
     @ResponseBody
     public String write() {
-        return getWriteFormHtml("", "", "", "title");
+        return getWriteFormHtml("", "", "");
     }
 
     @AllArgsConstructor
@@ -51,14 +50,17 @@ public class PostController {
 
             String errorMessages = bindingResult.getFieldErrors()
                     .stream()
-                    .map(FieldError::getDefaultMessage)
+                    .map(f -> f.getDefaultMessage() + "-" + f.getField())
                     .sorted()
-                    .collect(Collectors.joining("<br>"));
+                    .map(message -> message.split("-")) // [no, errorMessage, errorFiled]
+                    .map(bits -> """
+                            <!-- %s --><li data-error-field-name="%s">%s</li>
+                            """.formatted(bits[0], bits[2], bits[1]))
+                    .collect(Collectors.joining(""));
 
             return getWriteFormHtml(errorMessages,
                     postWriteForm.getTitle(),
-                    postWriteForm.getContent(),
-                    "title"
+                    postWriteForm.getContent()
             );
         }
 
@@ -66,9 +68,9 @@ public class PostController {
         return "%d번 글이 작성되었습니다.".formatted(post.getId());
     }
 
-    private String getWriteFormHtml(String errorMessage, String title, String content, String errorField) {
+    private String getWriteFormHtml(String errorMessage, String title, String content) {
         return """
-                        <div style="color:red">%s</div>
+                        <ul style="color:red">%s</ul>
                 
                         <form method="POST" action="/posts/doWrite">
                           <input type="text" name="title" value="%s" autoFocus>
@@ -78,14 +80,15 @@ public class PostController {
                         </form>
                 
                         <script>
-                            const errorFieldName = "%s";
+                            const li = document.querySelector("ul li");
+                            const errorFieldName = li.dataset.errorFieldName;
                 
                             if(errorFieldName.length > 0) {
                                 const form = document.querySelector("form");
                                 form[errorFieldName].focus();
                             }
                         </script>
-                """.formatted(errorMessage, title, content, errorField);
+                """.formatted(errorMessage, title, content);
     }
 
 }
