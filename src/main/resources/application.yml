@@ -1,6 +1,6 @@
 spring:
   application:
-    name: p-64-260806
+    name: p-65-260807
   profiles:
     active: dev
 
