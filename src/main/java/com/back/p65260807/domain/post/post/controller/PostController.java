@@ -2,18 +2,19 @@ package com.back.p65260807.domain.post.post.controller;
 
 import com.back.p65260807.domain.post.post.entity.Post;
 import com.back.p65260807.domain.post.post.service.PostService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequiredArgsConstructor
-@Validated
 public class PostController {
 
     private final PostService postService;
@@ -21,18 +22,24 @@ public class PostController {
     @GetMapping("/posts/write")
     @ResponseBody
     public String write() {
-
         return getWriteFormHtml("", "", "", "title");
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class PostWriteForm {
+        @NotBlank @Size(min=2, max=10)
+        private String title;
+        @NotBlank @Size(min=2, max=10)
+        private String content;
     }
 
     @PostMapping("/posts/doWrite")
     @ResponseBody
     public String doWrite(
-            @NotBlank @Size(min=2, max=10) String title,
-            @NotBlank @Size(min=2, max=10) String content
+            @Valid PostWriteForm postWriteForm
     ) {
-
-        Post post = postService.write(title, content);
+        Post post = postService.write(postWriteForm.getTitle(), postWriteForm.getContent());
         return "%d번 글이 작성되었습니다.".formatted(post.getId());
     }
 
